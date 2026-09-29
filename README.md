@@ -16,7 +16,7 @@ Tetapan guru membolehkan pemasa, bunyi dan petunjuk ditukar serta pasukan/set di
 
 ## Teknologi dan seni bina
 
-React + TypeScript strict + Vite + CSS. Data pendidikan dalam `src/data/questions.ts`; mesin keadaan skrin dalam `src/App.tsx`; dialog asli dengan fokus terkurung dan ilustrasi SVG dalam `src/components/UI.tsx`. Aliran data: set/pasukan → lima soalan → jawapan dan percubaan dalam memori → markah setiap misi → keputusan. Tiada backend, pangkalan data, akaun, API berbayar atau rahsia. Web Audio menjana bunyi hanya selepas interaksi dan gagal secara senyap jika tidak tersedia. Nunito menggunakan Google Fonts dengan fon sistem sebagai sandaran.
+React + TypeScript strict + Vite + CSS. Data pendidikan dalam `src/data/questions.ts`; mesin keadaan skrin dalam `src/App.tsx`; dialog asli dengan fokus terkurung dan ilustrasi SVG dalam `src/components/UI.tsx`. Aliran data: set/pasukan → lima soalan → jawapan dan percubaan dalam memori → markah setiap misi → keputusan. Tiada backend, pangkalan data, akaun, API berbayar atau rahsia. Web Audio menjana bunyi hanya selepas interaksi dan gagal secara senyap jika tidak tersedia. Nunito dibundel bersama permainan melalui Fontsource; tiada permintaan fon kepada Google Fonts semasa bermain.
 
 ## Pembangunan tempatan
 
@@ -74,4 +74,17 @@ Lobi mempunyai animasi kapal terbang, awan, bagasi di tali sawat, pancaran pengi
 Muzik pengembaraan asal lapan bar dijana secara tempatan dengan Web Audio (melodi loceng, arpeggio dan bes). Muzik bermula selepas interaksi pengguna. Kesan bunyi berbeza tersedia untuk ketikan, susun cebisan, mula misi, jawapan betul, percubaan semula dan tamat misi. Kawalan pembesar suara mematikan semua audio; butang muzik atau Tetapan Guru mengawal muzik latar. Audio dijeda apabila tab disembunyikan dan tetapan disimpan pada peranti. Tiada fail audio luaran atau lesen muzik tambahan diperlukan.
 
 Komponen lobi: `src/components/GameHome.tsx`. Enjin audio: `src/audio/GameAudio.ts`. Ujian tambahan `tests/audio-lobby.spec.ts` menyemak peraturan autoplay, gain audio, mute, tab tersembunyi, penyimpanan pilihan, jeda animasi dan paparan responsif.
+
+
+## Semakan versi langsung
+
+Ujian yang sama boleh digunakan pada GitHub Pages, termasuk laluan subdirektori:
+
+```powershell
+$env:TEST_URL = 'https://kir0sploit.github.io/misi-pancaindera/'
+npm test
+Remove-Item Env:TEST_URL
+```
+
+Untuk ujian tempatan biasa, jalankan `npm test` tanpa `TEST_URL`. Konfigurasi mengehadkan ujian kepada dua worker untuk mengelakkan perebutan sumber audio dan pelayar.
 

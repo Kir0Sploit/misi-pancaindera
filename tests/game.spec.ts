@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { groups, selectQuestions, objectiveMet } from "../src/data/questions";
 async function begin(page: Page, group: string) {
-  await page.goto("/");
+  await page.goto("./");
   await page.getByRole("button", { name: "Tetapan Guru" }).click();
   await page.getByLabel("Set soalan").selectOption("a");
   await page.getByRole("button", { name: "Tutup", exact: true }).click();
@@ -93,7 +93,7 @@ test("Touch, preferences, help and responsive views", async ({ browser }) => {
     viewport: { width: 390, height: 844 },
   });
   const page = await context.newPage();
-  await page.goto("/");
+  await page.goto("./");
   await page.getByRole("button", { name: "CARA BERMAIN" }).tap();
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.getByRole("button", { name: "SAYA FAHAM" }).tap();

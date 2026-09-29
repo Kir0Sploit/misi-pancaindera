@@ -1,6 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap");
 :root {
-  font-family: "Nunito", ui-rounded, system-ui, sans-serif;
+  font-family: "Nunito Variable", ui-rounded, system-ui, sans-serif;
   color: #173f46;
   background: #f6f8f4;
   font-synthesis: none;
@@ -2111,3 +2110,4 @@ dialog > .text-button {
  .lobby-world { max-width: 500px; margin-left: auto; }
  .lobby-bottom { padding-top: 14px; padding-bottom: 16px; }
 }
+

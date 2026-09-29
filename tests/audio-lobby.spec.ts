@@ -26,7 +26,7 @@ test("Music lifecycle, mute and independent music control", async ({
       }
     };
   });
-  await page.goto("/");
+  await page.goto("./");
   expect(
     await page.evaluate(() => (window as any).audioProbe.contexts.length),
   ).toBe(0);
@@ -109,7 +109,7 @@ test("Music lifecycle, mute and independent music control", async ({
   ).toBe(0);
 });
 test("Animated lobby at desktop, iPad and phone sizes", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("./");
   for (const [name, width, height] of [
     ["desktop", 1440, 900],
     ["ipad", 1024, 768],
