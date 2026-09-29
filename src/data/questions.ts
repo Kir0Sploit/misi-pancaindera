@@ -1,5 +1,6 @@
 export type Category =
   "Penglihatan" | "Pendengaran" | "Rasa" | "Sentuhan" | "Bau";
+
 export const groups: {
   name: Category;
   icon: string;
@@ -37,243 +38,331 @@ export const groups: {
     description: "Kenali pelbagai bau",
   },
 ];
-export type Question = {
+
+export type FillQuestion = {
   category: Category;
   prompt: string;
   answer: string;
   icon: string;
+};
+export type SentenceQuestion = {
+  category: Category;
+  adjective: string;
+  situation: string;
   chunks: [string, string, string, string];
 };
-const bank: Record<Category, [string, string, string, string, string][]> = {
-  Penglihatan: [
-    [
-      "Pemandangan di luar lapangan terbang sangat",
-      "indah",
-      "🌄",
-      "Pemandangan itu",
+
+export const fillQuestions: FillQuestion[] = [
+  {
+    category: "Penglihatan",
+    prompt: "Lampu tanda tali pinggang keselamatan itu sangat ______.",
+    answer: "terang",
+    icon: "💡",
+  },
+  {
+    category: "Penglihatan",
+    prompt: "Pemandangan awan dari tingkap pesawat sangat ______.",
+    answer: "indah",
+    icon: "☁️",
+  },
+  {
+    category: "Penglihatan",
+    prompt: "Ruang kabin pesawat itu kelihatan ______.",
+    answer: "bersih",
+    icon: "✈️",
+  },
+  {
+    category: "Penglihatan",
+    prompt: "Pemandangan bandar dari udara kelihatan sangat ______.",
+    answer: "cantik",
+    icon: "🏙️",
+  },
+  {
+    category: "Penglihatan",
+    prompt: "Pramugara yang memakai pakaian seragam itu kelihatan ______.",
+    answer: "segak",
+    icon: "🧑‍✈️",
+  },
+  {
+    category: "Pendengaran",
+    prompt: "Bunyi loceng keselamatan di dalam pesawat sangat ______.",
+    answer: "nyaring",
+    icon: "🔔",
+  },
+  {
+    category: "Pendengaran",
+    prompt: "Bunyi enjin pesawat ketika berlepas agak ______.",
+    answer: "bising",
+    icon: "✈️",
+  },
+  {
+    category: "Pendengaran",
+    prompt: "Muzik yang dimainkan di dalam kabin kedengaran ______.",
+    answer: "merdu",
+    icon: "🎵",
+  },
+  {
+    category: "Pendengaran",
+    prompt: "Suara pengumuman di dalam pesawat kedengaran ______.",
+    answer: "kuat",
+    icon: "📢",
+  },
+  {
+    category: "Pendengaran",
+    prompt: "Bunyi perbualan penumpang di dalam kabin agak ______.",
+    answer: "bising",
+    icon: "💬",
+  },
+  {
+    category: "Rasa",
+    prompt: "Jus yang diminum semasa penerbangan terasa ______.",
+    answer: "manis",
+    icon: "🧃",
+  },
+  {
+    category: "Rasa",
+    prompt: "Hirisan lemon dalam minuman itu terasa ______.",
+    answer: "masam",
+    icon: "🍋",
+  },
+  {
+    category: "Rasa",
+    prompt: "Ubat yang diambil sebelum perjalanan terasa ______.",
+    answer: "pahit",
+    icon: "🥄",
+  },
+  {
+    category: "Rasa",
+    prompt: "Biskut yang diberikan semasa penerbangan terasa ______.",
+    answer: "manis",
+    icon: "🍪",
+  },
+  {
+    category: "Rasa",
+    prompt: "Buah oren yang dimakan di dalam pesawat terasa sedikit ______.",
+    answer: "masam",
+    icon: "🍊",
+  },
+  {
+    category: "Sentuhan",
+    prompt: "Kusyen tempat duduk pesawat terasa ______.",
+    answer: "lembut",
+    icon: "💺",
+  },
+  {
+    category: "Sentuhan",
+    prompt: "Permukaan meja lipat di hadapan tempat duduk terasa ______.",
+    answer: "licin",
+    icon: "▰",
+  },
+  {
+    category: "Sentuhan",
+    prompt: "Selimut yang diberikan kepada penumpang terasa ______.",
+    answer: "lembut",
+    icon: "🧣",
+  },
+  {
+    category: "Sentuhan",
+    prompt: "Permukaan beg yang dibawa oleh penumpang terasa ______.",
+    answer: "kasar",
+    icon: "🧳",
+  },
+  {
+    category: "Sentuhan",
+    prompt: "Pemegang tempat duduk pesawat terasa ______.",
+    answer: "licin",
+    icon: "💺",
+  },
+  {
+    category: "Bau",
+    prompt: "Ruang kabin pesawat itu berbau ______.",
+    answer: "harum",
+    icon: "✈️",
+  },
+  {
+    category: "Bau",
+    prompt: "Makanan yang dihidangkan di dalam pesawat berbau ______.",
+    answer: "wangi",
+    icon: "🍱",
+  },
+  {
+    category: "Bau",
+    prompt: "Pewangi udara di dalam kabin berbau ______.",
+    answer: "harum",
+    icon: "🌸",
+  },
+  {
+    category: "Bau",
+    prompt: "Bunga yang dibawa sebagai hadiah itu berbau ______.",
+    answer: "wangi",
+    icon: "💐",
+  },
+  {
+    category: "Bau",
+    prompt: "Stoking yang telah lama dipakai itu berbau ______.",
+    answer: "busuk",
+    icon: "🧦",
+  },
+];
+
+export const sentenceQuestions: SentenceQuestion[] = [
+  {
+    category: "Penglihatan",
+    adjective: "terang",
+    situation: "lampu tanda tali pinggang keselamatan",
+    chunks: [
+      "Lampu tanda tali pinggang keselamatan itu",
+      "sangat terang",
+      "apabila",
+      "dinyalakan",
+    ],
+  },
+  {
+    category: "Penglihatan",
+    adjective: "indah",
+    situation: "pemandangan awan dari tingkap pesawat",
+    chunks: [
+      "Pemandangan awan itu",
+      "sangat indah",
+      "apabila",
+      "dilihat dari tingkap pesawat",
+    ],
+  },
+  {
+    category: "Penglihatan",
+    adjective: "cantik",
+    situation: "pemandangan bandar dari udara",
+    chunks: [
+      "Pemandangan bandar itu",
+      "sangat cantik",
+      "apabila",
       "dilihat dari udara",
     ],
-    [
-      "Lampu di balai berlepas sangat",
-      "cerah",
-      "💡",
-      "Lampu itu",
-      "dinyalakan pada waktu malam",
-    ],
-    [
-      "Ruang menunggu itu kelihatan",
-      "bersih",
-      "🪑",
-      "Ruang menunggu itu",
-      "selesai dibersihkan",
-    ],
-    [
-      "Corak pada beg itu kelihatan",
-      "cantik",
-      "🧳",
-      "Corak pada beg itu",
-      "dilihat dari dekat",
-    ],
-    [
-      "Langit di atas lapangan terbang kelihatan",
-      "gelap",
-      "🌙",
-      "Langit itu",
-      "malam menjelang",
-    ],
-    [
-      "Pakaian pegawai itu kelihatan",
-      "kemas",
-      "👔",
-      "Pakaian pegawai itu",
-      "diseterika",
-    ],
-  ],
-  Pendengaran: [
-    [
-      "Bunyi enjin kapal terbang sangat",
-      "bising",
-      "✈️",
-      "Bunyi enjin itu",
-      "kapal terbang berlepas",
-    ],
-    [
-      "Suara pegawai melalui pembesar suara kedengaran",
-      "jelas",
-      "📢",
-      "Suara pegawai itu",
-      "mikrofon digunakan",
-    ],
-    [
-      "Bunyi loceng amaran itu sangat",
-      "nyaring",
-      "🔔",
-      "Bunyi loceng itu",
-      "loceng dibunyikan",
-    ],
-    [
-      "Lagu yang dinyanyikan oleh penumpang itu kedengaran",
-      "merdu",
-      "🎵",
-      "Suara penumpang itu",
-      "dia menyanyi",
-    ],
-    [
-      "Bilik rehat itu menjadi",
-      "senyap",
-      "🤫",
-      "Bilik rehat itu",
-      "semua penumpang berhenti bercakap",
-    ],
-    [
-      "Suara penumpang yang sakit tekak itu kedengaran",
-      "serak",
-      "🗣️",
-      "Suara penumpang itu",
-      "dia sakit tekak",
-    ],
-  ],
-  Rasa: [
-    [
-      "Coklat di dalam bekas makanan itu terasa",
-      "manis",
-      "🍫",
-      "Coklat itu",
-      "dimakan",
-    ],
-    [
-      "Limau di dalam bekas makanan itu terasa",
-      "masam",
-      "🍋",
-      "Limau itu",
-      "dimakan",
-    ],
-    [
-      "Ubat yang diberikan oleh ibu terasa",
-      "pahit",
-      "🥄",
-      "Ubat itu",
-      "ditelan mengikut arahan ibu",
-    ],
-    [
-      "Kerepek yang ditabur banyak garam terasa",
-      "masin",
-      "🥨",
-      "Kerepek itu",
-      "ditabur garam",
-    ],
-    [
-      "Sambal di dalam bekal itu terasa",
-      "pedas",
-      "🌶️",
-      "Sambal itu",
-      "ditambah cili",
-    ],
-    [
-      "Sup tanpa garam di kafe itu terasa",
-      "tawar",
-      "🍲",
-      "Sup itu",
-      "dimasak tanpa garam",
-    ],
-  ],
-  Sentuhan: [
-    [
-      "Bantal perjalanan itu terasa",
-      "lembut",
-      "☁️",
-      "Bantal perjalanan itu",
-      "disentuh",
-    ],
-    [
-      "Permukaan beg yang tidak rata itu terasa",
-      "kasar",
-      "🧳",
-      "Permukaan beg itu",
-      "disentuh",
-    ],
-    [
-      "Permukaan botol yang bersabun itu terasa",
-      "licin",
-      "🧴",
-      "Permukaan botol itu",
-      "terkena sabun",
-    ],
-    [
-      "Kotak kayu di atas troli itu terasa",
-      "keras",
-      "📦",
-      "Kotak kayu itu",
-      "disentuh",
-    ],
-    [
-      "Pek ais di dalam bekas itu terasa",
-      "sejuk",
-      "🧊",
-      "Pek ais itu",
-      "dipegang",
-    ],
-    [
-      "Cawan berisi air suam itu terasa",
-      "suam",
-      "☕",
-      "Cawan itu",
-      "diisi dengan air suam",
-    ],
-  ],
-  Bau: [
-    ["Bunga di kaunter itu berbau", "wangi", "🌷", "Bunga itu", "dihidu"],
-    [
-      "Sampah yang sudah lama di dalam tong itu berbau",
-      "busuk",
-      "🗑️",
-      "Sampah itu",
-      "dibiarkan terlalu lama",
-    ],
-    [
-      "Minyak wangi di dalam botol itu berbau",
-      "harum",
-      "🌸",
-      "Minyak wangi itu",
-      "disembur pada pakaian",
-    ],
-    [
-      "Ikan mentah di dalam bekas itu berbau",
-      "hanyir",
-      "🐟",
-      "Ikan mentah itu",
-      "dikeluarkan dari bekas",
-    ],
-    [
-      "Baju lembap yang lama tersimpan di dalam beg berbau",
-      "hapak",
-      "👕",
-      "Baju itu",
-      "disimpan dalam keadaan lembap",
-    ],
-    [
-      "Asap daripada roti yang terbakar berbau",
-      "hangit",
-      "🍞",
-      "Roti itu",
-      "terbakar",
-    ],
-  ],
-};
-export const questions: Question[] = groups.flatMap((g) =>
-  bank[g.name].map(([prompt, answer, icon, subject, context]) => ({
-    category: g.name,
-    prompt: prompt + " ______.",
-    answer,
-    icon,
+  },
+  {
+    category: "Pendengaran",
+    adjective: "nyaring",
+    situation: "bunyi loceng keselamatan",
     chunks: [
-      subject,
-      `${g.name === "Bau" ? "berbau" : g.name === "Rasa" || g.name === "Sentuhan" ? "terasa" : g.name === "Pendengaran" ? "kedengaran" : "kelihatan"} ${answer}`,
+      "Bunyi loceng keselamatan itu",
+      "sangat nyaring",
       "apabila",
-      context,
+      "dibunyikan di dalam pesawat",
     ],
-  })),
-);
+  },
+  {
+    category: "Pendengaran",
+    adjective: "bising",
+    situation: "bunyi enjin pesawat",
+    chunks: [
+      "Bunyi enjin pesawat itu",
+      "agak bising",
+      "apabila",
+      "pesawat berlepas",
+    ],
+  },
+  {
+    category: "Pendengaran",
+    adjective: "merdu",
+    situation: "muzik di dalam kabin",
+    chunks: [
+      "Muzik di dalam kabin itu",
+      "sangat merdu",
+      "apabila",
+      "dimainkan",
+    ],
+  },
+  {
+    category: "Rasa",
+    adjective: "manis",
+    situation: "jus semasa penerbangan",
+    chunks: [
+      "Jus semasa penerbangan itu",
+      "sangat manis",
+      "apabila",
+      "diminum",
+    ],
+  },
+  {
+    category: "Rasa",
+    adjective: "masam",
+    situation: "hirisan lemon",
+    chunks: ["Hirisan lemon itu", "sangat masam", "apabila", "dimakan"],
+  },
+  {
+    category: "Rasa",
+    adjective: "pahit",
+    situation: "ubat sebelum perjalanan",
+    chunks: [
+      "Ubat sebelum perjalanan itu",
+      "sangat pahit",
+      "apabila",
+      "ditelan",
+    ],
+  },
+  {
+    category: "Sentuhan",
+    adjective: "lembut",
+    situation: "kusyen tempat duduk pesawat",
+    chunks: [
+      "Kusyen tempat duduk pesawat itu",
+      "sangat lembut",
+      "apabila",
+      "disentuh",
+    ],
+  },
+  {
+    category: "Sentuhan",
+    adjective: "licin",
+    situation: "meja lipat",
+    chunks: ["Permukaan meja lipat itu", "sangat licin", "apabila", "disentuh"],
+  },
+  {
+    category: "Sentuhan",
+    adjective: "kasar",
+    situation: "permukaan beg penumpang",
+    chunks: [
+      "Permukaan beg penumpang itu",
+      "sangat kasar",
+      "apabila",
+      "disentuh",
+    ],
+  },
+  {
+    category: "Bau",
+    adjective: "harum",
+    situation: "ruang kabin pesawat",
+    chunks: [
+      "Ruang kabin pesawat itu",
+      "sangat harum",
+      "apabila",
+      "pewangi udara digunakan",
+    ],
+  },
+  {
+    category: "Bau",
+    adjective: "wangi",
+    situation: "makanan yang dihidangkan",
+    chunks: [
+      "Makanan yang dihidangkan itu",
+      "sangat wangi",
+      "apabila",
+      "penutupnya dibuka",
+    ],
+  },
+  {
+    category: "Bau",
+    adjective: "busuk",
+    situation: "stoking yang telah lama dipakai",
+    chunks: [
+      "Stoking yang telah lama dipakai itu",
+      "sangat busuk",
+      "apabila",
+      "dikeluarkan dari beg",
+    ],
+  },
+];
+
 export function shuffle<T>(items: readonly T[]): T[] {
   const result = [...items];
   for (let i = result.length - 1; i > 0; i--) {
@@ -282,21 +371,40 @@ export function shuffle<T>(items: readonly T[]): T[] {
   }
   return result;
 }
+
 export function selectQuestions(category: Category, set: string) {
-  const source = questions.filter((q) => q.category === category);
+  const source = fillQuestions.filter(
+    (question) => question.category === category,
+  );
   return set === "rawak"
-    ? shuffle(source).slice(0, 5)
+    ? shuffle(source)
     : set === "b"
-      ? [...source.slice(1), source[0]].slice(0, 5)
-      : source.slice(0, 5);
+      ? [...source.slice(2), ...source.slice(0, 2)]
+      : source;
 }
-export function optionsFor(q: Question) {
-  return shuffle([
-    q.answer,
-    ...groups
-      .filter((g) => g.name !== q.category)
-      .map((g) => questions.find((x) => x.category === g.name)!.answer),
-  ]);
+
+export function selectSentenceQuestions(set: string) {
+  return groups.map(({ name }) => {
+    const source = sentenceQuestions.filter(
+      (question) => question.category === name,
+    );
+    if (set === "a") return source[0];
+    if (set === "b") return source[1];
+    return source[Math.floor(Math.random() * source.length)];
+  });
 }
+
+const distractors: Record<Category, string[]> = {
+  Penglihatan: ["nyaring", "manis", "lembut", "harum"],
+  Pendengaran: ["terang", "masam", "licin", "wangi"],
+  Rasa: ["cantik", "merdu", "kasar", "harum"],
+  Sentuhan: ["indah", "bising", "pahit", "wangi"],
+  Bau: ["bersih", "kuat", "manis", "licin"],
+};
+
+export function optionsFor(question: FillQuestion) {
+  return shuffle([question.answer, ...distractors[question.category]]);
+}
+
 export const objectiveMet = (first: number, second: number) =>
   first >= 4 && second >= 4;

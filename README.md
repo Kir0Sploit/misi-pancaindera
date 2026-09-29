@@ -8,7 +8,9 @@ SK 5.1; SP 5.1.3 (iii): memahami dan menggunakan kata adjektif pancaindera mengi
 
 ## Aliran permainan
 
-Mula → pilih satu daripada lima pasukan → lima soalan kata adjektif → pengukuhan S + KA + KH + K → lima ayat melalui ketik dan letak → keputusan. Terdapat enam variasi bagi setiap deria (30 konteks, masing-masing dengan aktiviti kenal pasti dan bina ayat), set A, set B dan set rawak. Set tetap bertindih untuk pengukuhan. Dua misi menggunakan konteks sama untuk menghubungkan pengenalpastian dengan aplikasi.
+Mula → pilih satu daripada lima pasukan → lima soalan isi tempat kosong → pengukuhan S + KA + KH + K → lima ayat melalui ketik dan letak → keputusan. Aktiviti 1 mempunyai 25 soalan, iaitu lima bagi setiap deria. Aktiviti 2 mempunyai 15 situasi bina ayat, iaitu tiga bagi setiap deria; setiap pusingan memilih satu situasi daripada setiap deria supaya skor asal 4/5 kekal. Semua konteks berkaitan lapangan terbang, menaiki pesawat, kabin dan pengalaman penumpang yang selamat.
+
+Setiap skrin soalan mempunyai butang Home dan Back. Home memulakan semula permainan dengan selamat. Back kembali kepada soalan terdahulu dan memulihkan jawapan, percubaan, petunjuk atau susunan ayat yang telah dibuat.
 
 Setiap jawapan yang akhirnya diselesaikan mendapat satu bintang, maksimum 10. Markah objektif dikira berasingan: betul pada percubaan pertama tanpa menggunakan petunjuk. Objektif tercapai apabila kedua-dua misi mencapai sekurang-kurangnya 4/5. Percubaan salah boleh diulang tanpa had; jawapan tidak terus didedahkan. Markah ialah ukuran kumpulan, bukan penilaian individu.
 
@@ -36,11 +38,11 @@ npm test
 npm run preview
 ```
 
-Ujian Playwright meliputi lima pasukan, jawapan salah dan betul, dua misi, ambang objektif, ulang main, pertukaran pasukan, tetapan dan viewport sentuh. Aset Vite menggunakan `base: './'`, jadi laluan relatif berfungsi dalam subdirektori GitHub Pages. Tiada client-side URL router atau keperluan fallback 404.
+Ujian Playwright meliputi lima pasukan, bank 25/15 soalan, jawapan salah dan betul, pemulihan Back, reset Home, dua misi, ambang objektif, ulang main, pertukaran pasukan, tetapan dan viewport sentuh. Aset Vite menggunakan `base: './'`, jadi laluan relatif berfungsi dalam subdirektori GitHub Pages. Tiada client-side URL router atau keperluan fallback 404.
 
 ## Penerbitan GitHub Pages
 
-Folder ini ialah akar projek kendiri. Salin **kandungan folder ini termasuk `.github`**, bukan keseluruhan folder IPGFlow, ke repositori GitHub baharu, contohnya `misi-pancaindera`.
+Folder ini ialah akar projek kendiri dalam repositori sedia ada `Kir0Sploit/misi-pancaindera`.
 
 1. Tolak fail projek dan `package-lock.json` ke branch `main`.
 2. Dalam repositori: **Settings → Pages → Build and deployment → Source → GitHub Actions**.

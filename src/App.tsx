@@ -10,15 +10,19 @@ import {
   Clock,
   RotateCcw,
   Lightbulb,
+  Home,
+  ArrowLeft,
 } from "lucide-react";
 import {
   groups,
   selectQuestions,
+  selectSentenceQuestions,
   optionsFor,
   shuffle,
   objectiveMet,
   type Category,
-  type Question,
+  type FillQuestion,
+  type SentenceQuestion,
 } from "./data/questions";
 import { Modal } from "./components/UI";
 import { GameHome } from "./components/GameHome";
@@ -31,6 +35,15 @@ type Preferences = {
   timer: boolean;
   hints: boolean;
   set: string;
+};
+type QuestionState = {
+  attempts: number;
+  feedback: string;
+  solved: boolean;
+  slots: (number | null)[];
+  selected: number | null;
+  selectedAnswer: string | null;
+  hint: boolean;
 };
 const defaults: Preferences = {
   sound: true,
@@ -68,7 +81,8 @@ export default function App() {
     [prefs, setPrefs] = useState(load),
     [modal, setModal] = useState<"help" | "settings" | null>(null);
   const [teacherGroup, setTeacherGroup] = useState<Category>("Penglihatan");
-  const [deck, setDeck] = useState<Question[]>([]),
+  const [deck, setDeck] = useState<FillQuestion[]>([]),
+    [sentenceDeck, setSentenceDeck] = useState<SentenceQuestion[]>([]),
     [index, setIndex] = useState(0),
     [stars, setStars] = useState(0),
     [scores, setScores] = useState([0, 0]),
@@ -77,14 +91,25 @@ export default function App() {
     [solved, setSolved] = useState(false),
     [slots, setSlots] = useState<(number | null)[]>([null, null, null, null]),
     [selected, setSelected] = useState<number | null>(null),
+    [selectedAnswer, setSelectedAnswer] = useState<string | null>(null),
     [seconds, setSeconds] = useState(0),
-    [hint, setHint] = useState(false);
+    [hint, setHint] = useState(false),
+    [questionStates, setQuestionStates] = useState<
+      Record<string, QuestionState>
+    >({});
   useEffect(() => {
     gameAudio.configure(prefs.sound, prefs.music);
   }, [gameAudio, prefs.sound, prefs.music]);
-  const q = deck[index];
-  const choices = useMemo(() => (q ? optionsFor(q) : []), [q]);
-  const chunkOrder = useMemo(() => shuffle([0, 1, 2, 3]), [q, screen]);
+  const fillQuestion = deck[index];
+  const sentenceQuestion = sentenceDeck[index];
+  const choices = useMemo(
+    () => (fillQuestion ? optionsFor(fillQuestion) : []),
+    [fillQuestion],
+  );
+  const chunkOrder = useMemo(
+    () => shuffle([0, 1, 2, 3]),
+    [sentenceQuestion, screen],
+  );
   const active = screen === "one" || screen === "two";
   const currentGroup = groups.find((g) => g.name === group)!;
   useEffect(() => {
@@ -106,12 +131,47 @@ export default function App() {
     setSolved(false);
     setSlots([null, null, null, null]);
     setSelected(null);
+    setSelectedAnswer(null);
     setHint(false);
+  }
+  function stateKey(questionIndex = index, phase = screen) {
+    return `${phase}-${questionIndex}`;
+  }
+  function saveQuestionState() {
+    if (!active) return;
+    setQuestionStates((states) => ({
+      ...states,
+      [stateKey()]: {
+        attempts,
+        feedback,
+        solved,
+        slots,
+        selected,
+        selectedAnswer,
+        hint,
+      },
+    }));
+  }
+  function loadQuestionState(questionIndex: number, phase = screen) {
+    const saved = questionStates[stateKey(questionIndex, phase)];
+    if (!saved) {
+      clearQuestion();
+      return;
+    }
+    setAttempts(saved.attempts);
+    setFeedback(saved.feedback);
+    setSolved(saved.solved);
+    setSlots(saved.slots);
+    setSelected(saved.selected);
+    setSelectedAnswer(saved.selectedAnswer);
+    setHint(saved.hint);
   }
   function start(category = group) {
     gameAudio.effect("launch");
     setGroup(category);
     setDeck(selectQuestions(category, prefs.set));
+    setSentenceDeck(selectSentenceQuestions(prefs.set));
+    setQuestionStates({});
     setIndex(0);
     setStars(0);
     setScores([0, 0]);
@@ -142,21 +202,37 @@ export default function App() {
     }
   }
   function next() {
-    clearQuestion();
-    if (index < 4) setIndex((i) => i + 1);
-    else if (screen === "one") {
+    saveQuestionState();
+    if (index < 4) {
+      const nextIndex = index + 1;
+      setIndex(nextIndex);
+      loadQuestionState(nextIndex);
+    } else if (screen === "one") {
       gameAudio.effect("complete");
       setScreen("transition");
       setIndex(0);
+      clearQuestion();
     } else {
       gameAudio.effect("complete");
       setScreen("results");
+    }
+  }
+  function previousQuestion() {
+    saveQuestionState();
+    if (index > 0) {
+      const previousIndex = index - 1;
+      setIndex(previousIndex);
+      loadQuestionState(previousIndex);
+    } else if (screen === "two") {
+      setScreen("transition");
+      clearQuestion();
     }
   }
   function reset() {
     setScreen("home");
     setStars(0);
     setScores([0, 0]);
+    setQuestionStates({});
     setSeconds(0);
     clearQuestion();
     setModal(null);
@@ -319,201 +395,240 @@ export default function App() {
                 </button>
               </section>
             )}
-            {active && q && (
-              <section className="game">
-                <div className="game-top">
-                  <span className="team-pill">
-                    {currentGroup.icon} Pasukan {group}
-                  </span>
-                  <div className="question-progress">
-                    <span>Soalan {index + 1} / 5</span>
-                    <div>
-                      {Array.from({ length: 5 }, (_, i) => (
-                        <span
-                          key={i}
-                          className={
-                            i < index ? "done" : i === index ? "now" : ""
-                          }
-                        />
-                      ))}
-                    </div>
+            {active &&
+              ((screen === "one" && fillQuestion) ||
+                (screen === "two" && sentenceQuestion)) && (
+                <section className="game">
+                  <div
+                    className="activity-navigation"
+                    aria-label="Navigasi aktiviti"
+                  >
+                    <button className="nav-control" onClick={reset}>
+                      <Home size={19} /> Home
+                    </button>
+                    <button
+                      className="nav-control"
+                      onClick={previousQuestion}
+                      disabled={screen === "one" && index === 0}
+                    >
+                      <ArrowLeft size={19} /> Back
+                    </button>
                   </div>
-                  {prefs.timer && (
-                    <span className="timer">
-                      <Clock size={17} />
-                      {Math.floor(seconds / 60)}:
-                      {String(seconds % 60).padStart(2, "0")}
+                  <div className="game-top">
+                    <span className="team-pill">
+                      {currentGroup.icon} Pasukan {group}
                     </span>
-                  )}
-                </div>
-                <div className="exercise">
-                  <div className="eyebrow">
-                    MISI {screen === "one" ? "1 · KENAL PASTI" : "2 · APLIKASI"}
-                  </div>
-                  <h1 tabIndex={-1}>
-                    {screen === "one"
-                      ? "Pilih kata adjektif yang sesuai"
-                      : "Bina ayat"}
-                  </h1>
-                  {screen === "one" ? (
-                    <>
-                      <div className="inspection">
-                        <span className="object-emoji">{q.icon}</span>
-                        <span className="inspection-tag">
-                          BAGASI {String(index + 1).padStart(2, "0")}
-                          <br />
-                          <b>UNTUK DIPERIKSA</b>
-                        </span>
-                      </div>
-                      <p className="question-sentence">{q.prompt}</p>
-                      <div className="answer-grid">
-                        {choices.map((option, i) => (
-                          <button
-                            disabled={solved}
-                            key={option}
-                            className={
-                              "answer " +
-                              (solved && option === q.answer ? "correct" : "")
-                            }
-                            onClick={() => answer(option === q.answer)}
-                          >
-                            <span>{String.fromCharCode(65 + i)}</span>
-                            {option}
-                            {solved && option === q.answer && (
-                              <Check size={20} />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <p>
-                        Ketik satu cebisan ayat, kemudian ketik petak untuk
-                        meletakkannya.
-                      </p>
-                      <div className="formula">
-                        <b>S</b> + <b>KA</b> + <b>KH</b> + <b>K</b>
-                      </div>
-                      <div className="sentence-slots">
-                        {[
-                          "Subjek",
-                          "Kata/Frasa Adjektif",
-                          "Kata Hubung",
-                          "Keterangan",
-                        ].map((label, i) => (
-                          <div key={label}>
-                            <button
-                              className={
-                                "slot " + (slots[i] !== null ? "filled" : "")
-                              }
-                              disabled={solved}
-                              aria-label={`Petak ${i + 1}: ${label}`}
-                              onClick={() => {
-                                const updated = [...slots];
-                                if (selected !== null) {
-                                  updated[i] = selected;
-                                  setSelected(null);
-                                } else updated[i] = null;
-                                setSlots(updated);
-                                setFeedback("");
-                              }}
-                            >
-                              {slots[i] !== null
-                                ? q.chunks[slots[i]!]
-                                : `${i + 1}`}
-                            </button>
-                            <span>
-                              <b>{["S", "KA", "KH", "K"][i]}</b> · {label}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="chunks">
-                        {chunkOrder.map((i) => (
-                          <button
+                    <div className="question-progress">
+                      <span>Soalan {index + 1} / 5</span>
+                      <div>
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <span
                             key={i}
                             className={
-                              "chunk " + (selected === i ? "selected" : "")
+                              i < index ? "done" : i === index ? "now" : ""
                             }
-                            aria-pressed={selected === i}
-                            disabled={solved || slots.includes(i)}
-                            onClick={() =>
-                              setSelected(selected === i ? null : i)
-                            }
-                          >
-                            {q.chunks[i]}
-                          </button>
+                          />
                         ))}
                       </div>
-                      <div className="builder-actions">
-                        <button
-                          className="text-button"
-                          disabled={solved}
-                          onClick={() => {
-                            setSlots([null, null, null, null]);
-                            setSelected(null);
-                            setFeedback("");
-                          }}
-                        >
-                          <RotateCcw size={16} /> Susun semula
-                        </button>
-                        <button
-                          className="primary"
-                          disabled={solved || slots.includes(null)}
-                          onClick={() => answer(slots.every((v, i) => v === i))}
-                        >
-                          SEMAK AYAT <Check size={19} />
-                        </button>
-                      </div>
-                    </>
-                  )}
-                  <div
-                    className={
-                      "feedback " +
-                      (solved ? "success" : feedback ? "retry" : "")
-                    }
-                    role="status"
-                    key={`${attempts}-${solved}`}
-                  >
-                    {feedback && (
-                      <>
-                        <b>
-                          {solved ? "✓" : "↻"} {feedback}
-                        </b>
-                        {solved && (
-                          <span>⭐ Satu bintang pemeriksaan diperoleh!</span>
-                        )}
-                      </>
+                    </div>
+                    {prefs.timer && (
+                      <span className="timer">
+                        <Clock size={17} />
+                        {Math.floor(seconds / 60)}:
+                        {String(seconds % 60).padStart(2, "0")}
+                      </span>
                     )}
                   </div>
-                  {solved ? (
-                    <button className="primary next" onClick={next}>
-                      {index === 4 ? "SELESAIKAN MISI" : "SETERUSNYA"}{" "}
-                      <ArrowRight />
-                    </button>
-                  ) : (
-                    prefs.hints && (
-                      <div className="hint">
-                        <button
-                          className="text-button"
-                          onClick={() => setHint(true)}
-                        >
-                          <Lightbulb size={17} /> Perlukan petunjuk?
-                        </button>
-                        {hint && (
-                          <p>
-                            {screen === "one"
-                              ? `Gunakan deria ${group.toLowerCase()}. Fikirkan sifat objek ${q.icon} itu.`
-                              : `Mulakan ayat dengan “${q.chunks[0]}”. Kemudian nyatakan sifatnya.`}
-                          </p>
-                        )}
-                      </div>
-                    )
-                  )}
-                </div>
-              </section>
-            )}
+                  <div className="exercise">
+                    <div className="eyebrow">
+                      MISI{" "}
+                      {screen === "one" ? "1 · KENAL PASTI" : "2 · APLIKASI"}
+                    </div>
+                    <h1 tabIndex={-1}>
+                      {screen === "one"
+                      ? "Isi tempat kosong"
+                        : "Bina ayat"}
+                    </h1>
+                    {screen === "one" ? (
+                      <>
+                        <div className="inspection">
+                          <span className="object-emoji">
+                            {fillQuestion!.icon}
+                          </span>
+                          <span className="inspection-tag">
+                            ITEM {String(index + 1).padStart(2, "0")}
+                            <br />
+                            <b>UNTUK DIPERIKSA</b>
+                          </span>
+                        </div>
+                        <p className="question-sentence">
+                          {fillQuestion!.prompt}
+                        </p>
+                        <div className="answer-grid">
+                          {choices.map((option, i) => (
+                            <button
+                              disabled={solved}
+                              key={option}
+                              className={
+                                "answer " +
+                                (selectedAnswer === option ? "selected " : "") +
+                                (solved && option === fillQuestion!.answer
+                                  ? "correct"
+                                  : "")
+                              }
+                              aria-pressed={selectedAnswer === option}
+                              onClick={() => {
+                                setSelectedAnswer(option);
+                                answer(option === fillQuestion!.answer);
+                              }}
+                            >
+                              <span>{String.fromCharCode(65 + i)}</span>
+                              {option}
+                              {solved && option === fillQuestion!.answer && (
+                                <Check size={20} />
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="builder-instruction">
+                          Bina satu ayat lengkap berdasarkan kata adjektif dan
+                          situasi yang diberikan.
+                        </p>
+                        <div className="situation-card">
+                          <span>{sentenceQuestion!.category}</span>
+                          <strong>{sentenceQuestion!.adjective}</strong>
+                          <p>{sentenceQuestion!.situation}</p>
+                        </div>
+                        <p className="tap-instruction">
+                          Ketik cebisan ayat, kemudian ketik petak yang sesuai.
+                        </p>
+                        <div className="formula">
+                          <b>S</b> + <b>KA</b> + <b>KH</b> + <b>K</b>
+                        </div>
+                        <div className="sentence-slots">
+                          {[
+                            "Subjek",
+                            "Kata/Frasa Adjektif",
+                            "Kata Hubung",
+                            "Keterangan",
+                          ].map((label, i) => (
+                            <div key={label}>
+                              <button
+                                className={
+                                  "slot " + (slots[i] !== null ? "filled" : "")
+                                }
+                                disabled={solved}
+                                aria-label={`Petak ${i + 1}: ${label}`}
+                                onClick={() => {
+                                  const updated = [...slots];
+                                  if (selected !== null) {
+                                    updated[i] = selected;
+                                    setSelected(null);
+                                  } else updated[i] = null;
+                                  setSlots(updated);
+                                  setFeedback("");
+                                }}
+                              >
+                                {slots[i] !== null
+                                  ? sentenceQuestion!.chunks[slots[i]!]
+                                  : `${i + 1}`}
+                              </button>
+                              <span>
+                                <b>{["S", "KA", "KH", "K"][i]}</b> · {label}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="chunks">
+                          {chunkOrder.map((i) => (
+                            <button
+                              key={i}
+                              className={
+                                "chunk " + (selected === i ? "selected" : "")
+                              }
+                              aria-pressed={selected === i}
+                              disabled={solved || slots.includes(i)}
+                              onClick={() =>
+                                setSelected(selected === i ? null : i)
+                              }
+                            >
+                              {sentenceQuestion!.chunks[i]}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="builder-actions">
+                          <button
+                            className="text-button"
+                            disabled={solved}
+                            onClick={() => {
+                              setSlots([null, null, null, null]);
+                              setSelected(null);
+                              setFeedback("");
+                            }}
+                          >
+                            <RotateCcw size={16} /> Susun semula
+                          </button>
+                          <button
+                            className="primary"
+                            disabled={solved || slots.includes(null)}
+                            onClick={() =>
+                              answer(slots.every((v, i) => v === i))
+                            }
+                          >
+                            SEMAK AYAT <Check size={19} />
+                          </button>
+                        </div>
+                      </>
+                    )}
+                    <div
+                      className={
+                        "feedback " +
+                        (solved ? "success" : feedback ? "retry" : "")
+                      }
+                      role="status"
+                      key={`${attempts}-${solved}`}
+                    >
+                      {feedback && (
+                        <>
+                          <b>
+                            {solved ? "✓" : "↻"} {feedback}
+                          </b>
+                          {solved && (
+                            <span>⭐ Satu bintang pemeriksaan diperoleh!</span>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    {solved ? (
+                      <button className="primary next" onClick={next}>
+                        {index === 4 ? "SELESAIKAN MISI" : "SETERUSNYA"}{" "}
+                        <ArrowRight />
+                      </button>
+                    ) : (
+                      prefs.hints && (
+                        <div className="hint">
+                          <button
+                            className="text-button"
+                            onClick={() => setHint(true)}
+                          >
+                            <Lightbulb size={17} /> Perlukan petunjuk?
+                          </button>
+                          {hint && (
+                            <p>
+                              {screen === "one"
+                                ? `Gunakan deria ${group.toLowerCase()}. Fikirkan sifat objek ${fillQuestion!.icon} itu.`
+                                : `Mulakan ayat dengan “${sentenceQuestion!.chunks[0]}”. Kemudian nyatakan sifatnya.`}
+                            </p>
+                          )}
+                        </div>
+                      )
+                    )}
+                  </div>
+                </section>
+              )}
             {screen === "transition" && (
               <section className="center compact">
                 <div className="big-icon">✓</div>
@@ -531,7 +646,8 @@ export default function App() {
                   </small>
                 </div>
                 <p className="example">
-                  Bunga itu <b>sangat wangi</b> apabila dihidu.
+                  Pemandangan awan itu <b>sangat indah</b> apabila dilihat dari
+                  tingkap pesawat.
                 </p>
                 <button
                   className="primary"
@@ -623,7 +739,7 @@ export default function App() {
               <b>Pilih pasukan anda.</b> Bincang dan jawab bersama-sama.
             </li>
             <li>
-              <b>Misi 1:</b> Pilih kata adjektif yang sesuai untuk lima objek.
+              <b>Misi 1:</b> Isi tempat kosong dengan kata adjektif yang sesuai.
             </li>
             <li>
               <b>Misi 2:</b> Ketik cebisan ayat, kemudian ketik petak S, KA, KH

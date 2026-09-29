@@ -1,5 +1,12 @@
 import { test, expect, type Page } from "@playwright/test";
-import { groups, selectQuestions, objectiveMet } from "../src/data/questions";
+import {
+  fillQuestions,
+  groups,
+  objectiveMet,
+  selectQuestions,
+  selectSentenceQuestions,
+  sentenceQuestions,
+} from "../src/data/questions";
 async function begin(page: Page, group: string) {
   await page.goto("./");
   await page.getByRole("button", { name: "Tetapan Guru" }).click();
@@ -34,12 +41,13 @@ for (const [n, g] of groups.entries())
         .click();
     }
     await page.getByRole("button", { name: "MISI 2 · BINA AYAT" }).click();
+    const sentenceDeck = selectSentenceQuestions("a");
     for (let i = 0; i < 5; i++) {
       if (n === 0 && i === 0) {
         for (let j = 0; j < 4; j++) {
           await page
             .getByRole("button", {
-              name: qs[i].chunks[(j + 1) % 4],
+              name: sentenceDeck[i].chunks[(j + 1) % 4],
               exact: true,
             })
             .click();
@@ -53,7 +61,10 @@ for (const [n, g] of groups.entries())
       }
       for (let j = 0; j < 4; j++) {
         await page
-          .getByRole("button", { name: qs[i].chunks[j], exact: true })
+          .getByRole("button", {
+            name: sentenceDeck[i].chunks[j],
+            exact: true,
+          })
           .click();
         await page.getByRole("button", { name: `Petak ${j + 1}:` }).click();
       }
@@ -86,6 +97,18 @@ test("Objective boundary", () => {
   expect(objectiveMet(4, 4)).toBe(true);
   expect(objectiveMet(3, 5)).toBe(false);
   expect(objectiveMet(5, 3)).toBe(false);
+});
+test("Question banks contain the requested 25 and 15 items", () => {
+  expect(fillQuestions).toHaveLength(25);
+  expect(sentenceQuestions).toHaveLength(15);
+  for (const group of groups) {
+    expect(fillQuestions.filter((q) => q.category === group.name)).toHaveLength(
+      5,
+    );
+    expect(
+      sentenceQuestions.filter((q) => q.category === group.name),
+    ).toHaveLength(3);
+  }
 });
 test("Touch, preferences, help and responsive views", async ({ browser }) => {
   const context = await browser.newContext({
@@ -143,6 +166,7 @@ test("Touch sentence placement, hints and team switching", async ({
   const page = await context.newPage();
   await begin(page, "Bau");
   const qs = selectQuestions("Bau", "a");
+  const sentenceDeck = selectSentenceQuestions("a");
   await page.getByRole("button", { name: "Perlukan petunjuk?" }).tap();
   await expect(page.locator(".hint")).toContainText("Gunakan deria bau");
   for (let i = 0; i < 5; i++) {
@@ -164,7 +188,10 @@ test("Touch sentence placement, hints and team switching", async ({
   for (let i = 0; i < 5; i++) {
     for (let j = 0; j < 4; j++) {
       await page
-        .getByRole("button", { name: qs[i].chunks[j], exact: true })
+        .getByRole("button", {
+          name: sentenceDeck[i].chunks[j],
+          exact: true,
+        })
         .tap();
       await page.getByRole("button", { name: `Petak ${j + 1}:` }).tap();
     }
@@ -182,4 +209,31 @@ test("Touch sentence placement, hints and team switching", async ({
     page.getByRole("heading", { name: "Pilih Pasukan Anda" }),
   ).toBeVisible();
   await context.close();
+});
+
+test("Back restores answers and Home safely resets the mission", async ({
+  page,
+}) => {
+  await begin(page, "Penglihatan");
+  const deck = selectQuestions("Penglihatan", "a");
+  await page.locator(".answer").filter({ hasText: deck[0].answer }).click();
+  await page.getByRole("button", { name: "SETERUSNYA" }).click();
+  const wrong = page
+    .locator(".answer")
+    .filter({ hasNotText: deck[1].answer })
+    .first();
+  const wrongText = (await wrong.textContent())!.trim().slice(1);
+  await wrong.click();
+  await page.getByRole("button", { name: "Back" }).click();
+  await expect(page.getByText(deck[0].prompt)).toBeVisible();
+  await expect(
+    page.locator(".answer").filter({ hasText: deck[0].answer }),
+  ).toHaveClass(/correct/);
+  await page.getByRole("button", { name: "SETERUSNYA" }).click();
+  await expect(page.getByText(deck[1].prompt)).toBeVisible();
+  await expect(page.locator(".answer.selected")).toContainText(wrongText);
+  await page.getByRole("button", { name: "Home" }).click();
+  await expect(
+    page.getByRole("button", { name: "MULA MISI", exact: true }),
+  ).toBeVisible();
 });
